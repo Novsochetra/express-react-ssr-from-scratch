@@ -1,5 +1,6 @@
 {
   "type": "module",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "NODE_ENV=development node ./server/dev-server.js",
     "preview": "yarn build:prod && NODE_ENV=production node ./server/dev-server.js",

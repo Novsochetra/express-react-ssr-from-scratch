@@ -1,1 +1,0 @@
-import{r as o,j as t,L as r}from"./entry-client-CreyE27j.js";function c(){const[n,e]=o.useState(0);return t.jsxs("div",{children:[t.jsxs("h1",{children:["About (SSR)",t.jsx(r,{to:"/home",children:"home"})]}),t.jsx("br",{}),t.jsx("button",{onClick:()=>{e(s=>++s)},children:"+"}),t.jsx("p",{children:n}),t.jsx("button",{onClick:()=>{e(s=>--s)},children:"-"})]})}export{c as default};

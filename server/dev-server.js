@@ -4,6 +4,7 @@ import path from "node:path";
 import express from "express";
 import compression from "compression";
 import { createServer as createViteServer } from "vite";
+import { RoutePathValues } from "./route-path.js";
 
 let cache = {
   manifestClient: null,
@@ -30,6 +31,7 @@ async function startServer() {
   app.use(compression());
 
   let viteDevServer;
+  let entryServer;
   if (isDev) {
     viteDevServer = await createViteServer({
       server: { middlewareMode: "ssr" },
@@ -39,19 +41,27 @@ async function startServer() {
     app.use(viteDevServer.middlewares);
   }
 
-  app.use("/", express.static(path.resolve("./dist/client")));
-  app.use("/favicon", express.static(path.resolve("./public/favicon")));
+  // INFO: for client side react app hydration
+  if (!isDev) {
+    app.use("/public", express.static(path.resolve("./dist/client")));
+    app.use("/public", express.static(path.resolve("./public")));
+  }
 
-  app.use("/{*splats}", async (req, res) => {
+  app.use("/robots.txt", express.static(path.resolve("./robots.txt")));
+
+  if (!isDev) {
+    entryServer = await import(`../dist/server/entry-server.js`);
+  }
+
+  app.use("{*splats}", async (req, res) => {
     const url = req.originalUrl;
     try {
-      if (
-        url.startsWith("/favicon.ico") ||
-        url.startsWith("/client/") ||
-        url.match(/\.(js|css|png|jpg|svg)$/) ||
-        url.match(/\.well\-known/)
-      ) {
-        return res.status(200).end();
+      // Check if it's a valid app route
+      const path = req.originalUrl.split("?")[0];
+      const isKnownRoute = RoutePathValues.includes(url);
+
+      if (!isKnownRoute) {
+        return res.status(404).send("Not Found");
       }
 
       let entryClientFile;
@@ -67,9 +77,8 @@ async function startServer() {
         handleRequest(req, res, viteDevServer, entryClientFile);
       } else {
         const manifest = loadManifest();
-        entryClientFile = manifest["client/entry-client.jsx"].file;
-        const mod = await import(`../dist/server/entry-server.js`);
-        mod.handleRequest(req, res, null, entryClientFile);
+        entryClientFile = "/public/" + manifest["client/entry-client.jsx"].file;
+        entryServer.handleRequest(req, res, null, entryClientFile);
       }
     } catch (err) {
       if (viteDevServer) {

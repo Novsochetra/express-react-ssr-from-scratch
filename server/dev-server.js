@@ -48,6 +48,9 @@ async function startServer() {
   }
 
   app.use("/robots.txt", express.static(path.resolve("./robots.txt")));
+  app.get("/favicon.ico", (req, res) => {
+    res.status(200).sendFile(path.resolve("./public/favicon"));
+  });
 
   if (!isDev) {
     entryServer = await import(`../dist/server/entry-server.js`);

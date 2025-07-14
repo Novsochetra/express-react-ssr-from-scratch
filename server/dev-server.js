@@ -2,6 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import express from "express";
+import compression from "compression";
 import { createServer as createViteServer } from "vite";
 
 let cache = {
@@ -25,6 +26,8 @@ const isDev = process.env.NODE_ENV === "development";
 
 async function startServer() {
   const app = express();
+
+  app.use(compression());
 
   let viteDevServer;
   if (isDev) {

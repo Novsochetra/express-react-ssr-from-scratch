@@ -1,7 +1,7 @@
-import React, { lazy } from "react";
+import { lazy } from "react";
 import { RoutePath } from "./route-path";
-import Home from "../client/home";
-import About from "../client/about";
+const About = lazy(() => import("../client/about"));
+const Home = lazy(() => import("../client/home"));
 
 export const routes = [
   {

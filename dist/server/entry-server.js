@@ -1,64 +1,16 @@
-import { jsx, jsxs } from "react/jsx-runtime";
+import { jsx } from "react/jsx-runtime";
 import fs from "node:fs";
 import path from "node:path";
 import { renderToPipeableStream } from "react-dom/server";
-import { Link, createStaticHandler, createStaticRouter, StaticRouterProvider } from "react-router";
-import { lazy, Suspense, useState } from "react";
+import { createStaticHandler, createStaticRouter, StaticRouterProvider } from "react-router";
+import { lazy } from "react";
 const RoutePath = {
   ROOT: "/",
   HOME: "/home",
   ABOUT: "/about"
 };
-const HomeSideBar = () => {
-  return /* @__PURE__ */ jsx("p", { children: "Home Sidebar" });
-};
-const HomeContent = lazy(() => import("./assets/home-content-CyIwB8x-.js"));
-function Home() {
-  return /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsx(
-      "h1",
-      {
-        onClick: () => {
-          console.log("HI");
-        },
-        children: "Home (SSR) other"
-      }
-    ),
-    /* @__PURE__ */ jsx("br", {}),
-    /* @__PURE__ */ jsx(Link, { to: "/about", children: "About" }),
-    /* @__PURE__ */ jsx(HomeSideBar, {}),
-    /* @__PURE__ */ jsx(Suspense, { fallback: /* @__PURE__ */ jsx("p", { children: "loading content...." }), children: /* @__PURE__ */ jsx(HomeContent, {}) })
-  ] });
-}
-function About() {
-  const [counter, setCounter] = useState(0);
-  return /* @__PURE__ */ jsxs("div", { children: [
-    /* @__PURE__ */ jsxs("h1", { children: [
-      "About (SSR)",
-      /* @__PURE__ */ jsx(Link, { to: "/home", children: "home" })
-    ] }),
-    /* @__PURE__ */ jsx("br", {}),
-    /* @__PURE__ */ jsx(
-      "button",
-      {
-        onClick: () => {
-          setCounter((prev) => ++prev);
-        },
-        children: "+"
-      }
-    ),
-    /* @__PURE__ */ jsx("p", { children: counter }),
-    /* @__PURE__ */ jsx(
-      "button",
-      {
-        onClick: () => {
-          setCounter((prev) => --prev);
-        },
-        children: "-"
-      }
-    )
-  ] });
-}
+const About = lazy(() => import("./assets/about-1vuKIyOm.js"));
+const Home = lazy(() => import("./assets/home-BpqYs7nO.js"));
 const routes = [
   {
     path: RoutePath.ROOT,
@@ -93,23 +45,23 @@ async function handleRequest(req, res, viteDevServer, clientFilePath) {
   }
   const router = createStaticRouter(handler.dataRoutes, context);
   let html = fs.readFileSync(path.resolve("public/index.html"), "utf-8");
-  let [htmlS, htmlE] = html.split("<!--ssr-outlet-->");
-  htmlE = htmlE.replace(
+  let [htmlStart, htmlEnd] = html.split("<!--ssr-outlet-->");
+  htmlEnd = htmlEnd.replace(
     "<!-- script -->",
     `<script async type="module" src="${clientFilePath}"><\/script>`
   );
   if (viteDevServer) {
-    htmlStart = await viteDevServer.transformIndexHtml(req.url, htmlS);
-    htmlEnd = await viteDevServer.transformIndexHtml(req.url, htmlE);
+    htmlStart = await viteDevServer.transformIndexHtml(req.url, htmlStart);
+    htmlEnd = await viteDevServer.transformIndexHtml(req.url, htmlEnd);
   }
   const stream = renderToPipeableStream(
     /* @__PURE__ */ jsx(StaticRouterProvider, { context, router }),
     {
       onShellReady() {
         res.status(200).setHeader("Content-Type", "text/html");
-        res.write(htmlS);
+        res.write(htmlStart);
         stream.pipe(res);
-        res.write(htmlE);
+        res.write(htmlEnd);
       },
       onError(err) {
         console.error("Stream error:", err);

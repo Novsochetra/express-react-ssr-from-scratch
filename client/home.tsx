@@ -1,6 +1,9 @@
+import "./home.out.css";
+
 import { Suspense, lazy } from "react";
 import { Link } from "react-router";
 import HomeSideBar from "./home-sidebar";
+
 const HomeContent = lazy(() => import("./home-content"));
 
 export default function Home() {
@@ -15,7 +18,9 @@ export default function Home() {
       </h1>
 
       <br />
-      <Link to="/about">About</Link>
+      <Link to="/about" className="bg-blue-500 font-bold">
+        About
+      </Link>
 
       <HomeSideBar />
 

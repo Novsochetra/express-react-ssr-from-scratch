@@ -1,0 +1,20 @@
+{
+  "client/entry-client.jsx": {
+    "file": "assets/entry-client-RUwTt9HG.js",
+    "name": "entry-client",
+    "src": "client/entry-client.jsx",
+    "isEntry": true,
+    "dynamicImports": [
+      "client/home-content.tsx"
+    ]
+  },
+  "client/home-content.tsx": {
+    "file": "assets/home-content-ckhxxwo2.js",
+    "name": "home-content",
+    "src": "client/home-content.tsx",
+    "isDynamicEntry": true,
+    "imports": [
+      "client/entry-client.jsx"
+    ]
+  }
+}

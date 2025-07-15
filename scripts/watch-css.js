@@ -63,7 +63,7 @@ async function watchFile(file, index, totalFiles) {
   if (mode === "concurrent") {
     await buildCssConcurrent(inputPath, outputPath);
   } else if (mode === "queue") {
-    buildCssQueue(inputPath, outputPath);
+    await buildCssQueue(inputPath, outputPath);
   }
 }
 
@@ -85,9 +85,8 @@ function buildCss(inputPath, outputPath) {
 }
 
 function buildCssQueue(inputPath, outputPath) {
-  return new Promise((resolve) => {
+  return new Promise(async (resolve) => {
     const proc = buildCss(inputPath, outputPath);
-
     proc.on("exit", (code) => {
       if (code === 0) {
         resolve();

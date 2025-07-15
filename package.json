@@ -2,7 +2,7 @@
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "yarn build:asset:dev & NODE_ENV=development node ./server/dev-server.js",
+    "dev": "yarn build:asset:dev --mode=concurrent & NODE_ENV=development node ./server/dev-server.js",
     "preview": "yarn build:prod && NODE_ENV=production node ./server/dev-server.js",
     "build:asset:prod": "NODE_ENV=production node scripts/watch-css.js",
     "build:asset:dev": "NODE_ENV=development node scripts/watch-css.js",

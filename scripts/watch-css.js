@@ -6,6 +6,9 @@ import { isDev } from "../server/helper.js";
 const __dirname = path.resolve();
 const CLIENT_DIR = path.join(__dirname, "client");
 const CLIENT_OUT_DIR = path.join(__dirname, "client");
+const args = process.argv.slice(2);
+const modeArg = args.find((arg) => arg.startsWith("--mode="));
+const mode = modeArg ? modeArg.split("=")[1] : "queue"; // default to 'queue'
 
 function getCssFileNamesRecursively(dir) {
   let results = [];
@@ -25,9 +28,9 @@ function getCssFileNamesRecursively(dir) {
   return results;
 }
 
-function scanCssFiles() {
+async function scanCssFiles() {
   const files = getCssFileNamesRecursively(CLIENT_DIR);
-  console.log(`\n📂 Watching Tailwind CSS files:`);
+  console.log(`\n📂 Watching Tailwind CSS files (${mode}):`);
   const cssFilesOnly =
     files.filter(
       (file) =>
@@ -35,16 +38,16 @@ function scanCssFiles() {
         !path.basename(file)?.includes(".out.css")
     ) || [];
 
-  cssFilesOnly.forEach((file, index) =>
-    watchFile(file, index, cssFilesOnly.length)
-  );
+  for (let i = 0; i < cssFilesOnly.length; i++) {
+    await watchFile(cssFilesOnly[i], i, cssFilesOnly.length);
+  }
 
   console.log(`\n`);
 }
 
 const processes = new Map();
 
-function watchFile(file, index, totalFiles) {
+async function watchFile(file, index, totalFiles) {
   if (processes.has(file)) return; // already watching
 
   const inputPath = file;
@@ -57,7 +60,14 @@ function watchFile(file, index, totalFiles) {
   const prefix = isLast ? "└─" : "├─";
 
   console.log(`${prefix} ${inputPath?.replace(__dirname, "")}`);
+  if (mode === "concurrent") {
+    await buildCssConcurrent(inputPath, outputPath);
+  } else if (mode === "queue") {
+    buildCssQueue(inputPath, outputPath);
+  }
+}
 
+function buildCss(inputPath, outputPath) {
   const baseScript = [
     "tailwindcss",
     "-i",
@@ -71,12 +81,28 @@ function watchFile(file, index, totalFiles) {
     baseScript.push("--watch");
   }
 
-  const proc = spawn("npx", baseScript);
+  return spawn("npx", baseScript);
+}
 
-  processes.set(file, proc);
+function buildCssQueue(inputPath, outputPath) {
+  return new Promise((resolve) => {
+    const proc = buildCss(inputPath, outputPath);
+
+    proc.on("exit", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`❌ Build failed: ${inputPath}`));
+      }
+    });
+  });
+}
+
+function buildCssConcurrent(inputPath, outputPath) {
+  const proc = buildCss(inputPath, outputPath);
 
   proc.on("exit", () => {
-    processes.delete(file);
+    processes.delete(inputPath);
   });
 }
 

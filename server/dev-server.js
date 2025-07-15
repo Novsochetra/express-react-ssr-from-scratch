@@ -5,25 +5,7 @@ import express from "express";
 import compression from "compression";
 import { createServer as createViteServer } from "vite";
 import { RoutePathValues } from "./route-path.js";
-
-let cache = {
-  manifestClient: null,
-  manifestServer: null,
-};
-
-function loadManifest() {
-  if (!isDev) {
-    if (!cache.manifestClient) {
-      const manifestPath = path.resolve("./dist/client/.vite/manifest.json");
-      cache.manifestClient = JSON.parse(fs.readFileSync(manifestPath, "utf-8"));
-      return cache.manifestClient;
-    }
-  }
-
-  return cache.manifestClient;
-}
-
-const isDev = process.env.NODE_ENV === "development";
+import { isDev, isProd, loadManifestClient } from "./helper.js";
 
 async function startServer() {
   const app = express();
@@ -42,7 +24,7 @@ async function startServer() {
   }
 
   // INFO: for client side react app hydration
-  if (!isDev) {
+  if (isProd) {
     app.use("/public", express.static(path.resolve("./dist/client")));
     app.use("/public", express.static(path.resolve("./public")));
   }
@@ -52,7 +34,7 @@ async function startServer() {
     res.status(200).sendFile(path.resolve("./public/favicon"));
   });
 
-  if (!isDev) {
+  if (isProd) {
     entryServer = await import(`../dist/server/entry-server.js`);
   }
 
@@ -76,11 +58,11 @@ async function startServer() {
         );
         handleRequest = ssrModule.handleRequest;
         entryClientFile = "./client/entry-client.jsx";
-
         handleRequest(req, res, viteDevServer, entryClientFile);
       } else {
-        const manifest = loadManifest();
+        const manifest = loadManifestClient();
         entryClientFile = "/public/" + manifest["client/entry-client.jsx"].file;
+
         entryServer.handleRequest(req, res, null, entryClientFile);
       }
     } catch (err) {
@@ -93,7 +75,14 @@ async function startServer() {
   });
 
   app.listen(3000, () => {
-    console.log("🚀 Dev server at http://localhost:3000");
+    const pattern = `
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀  Dev server running at:
+
+     http://localhost:3000
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    `;
+    console.log(pattern);
   });
 }
 

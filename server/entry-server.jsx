@@ -8,6 +8,7 @@ import {
   StaticRouterProvider,
 } from "react-router";
 import { routes } from "./routes";
+import { loadManifestServer } from "./helper.js";
 
 export async function handleRequest(req, res, viteDevServer, clientFilePath) {
   const handler = createStaticHandler(routes);
@@ -19,12 +20,25 @@ export async function handleRequest(req, res, viteDevServer, clientFilePath) {
     res.status(context.status).send("Not found");
     return;
   }
+
+  const newReq = new Request("http://localhost:3000" + req.url);
   const router = createStaticRouter(handler.dataRoutes, context);
+
   // Read your full HTML file
   let html = fs.readFileSync(path.resolve("public/index.html"), "utf-8");
 
   // Split at the ssr outlet inside the root div
   let [htmlStart, htmlEnd] = html.split("<!--ssr-outlet-->");
+
+  // preload all css
+
+  let preloadCss = "";
+
+  if (!viteDevServer) {
+    preloadCss = getPreloadLinksForPath(req.originalUrl);
+  }
+
+  htmlStart = htmlStart.replace("<!-- inject css -->", preloadCss);
   // Replace the script placeholder in the rest
   htmlEnd = htmlEnd.replace(
     "<!-- script -->",
@@ -51,4 +65,38 @@ export async function handleRequest(req, res, viteDevServer, clientFilePath) {
       },
     }
   );
+}
+
+// server/entry-server.tsx
+
+function getRouteForPath(pathname) {
+  const manifest = loadManifestServer();
+  return routes.find((r) => r.path === pathname);
+}
+
+function getPreloadLinksForPath(pathname) {
+  const manifest = loadManifestServer();
+
+  const route = getRouteForPath(pathname);
+  if (!route || !route.moduleId) return "";
+
+  const entry = manifest[route.moduleId];
+  if (!entry) return "";
+
+  let links = "";
+  const seen = new Set();
+
+  const addLink = (file) => {
+    if (seen.has(file)) return;
+    seen.add(file);
+
+    if (file.endsWith(".css")) {
+      links += `<link rel="preload" href="/public/${file}" as="style" />`;
+      links += `<link rel="stylesheet" href="/public/${file}" />`;
+    }
+  };
+
+  if (entry.css) entry.css.forEach(addLink);
+
+  return links;
 }

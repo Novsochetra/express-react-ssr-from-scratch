@@ -2,11 +2,13 @@
   "type": "module",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "NODE_ENV=development node ./server/dev-server.js",
+    "dev": "yarn build:asset:dev & NODE_ENV=development node ./server/dev-server.js",
     "preview": "yarn build:prod && NODE_ENV=production node ./server/dev-server.js",
+    "build:asset:prod": "NODE_ENV=production node scripts/watch-css.js",
+    "build:asset:dev": "NODE_ENV=development node scripts/watch-css.js",
     "build:client": "npx vite build --outDir dist/client --config vite.config.js --manifest ",
-    "build:server": "npx vite build --outDir dist/server --config vite.config.ssr.js",
-    "build:prod": "yarn build:client && yarn build:server"
+    "build:server": "npx vite build --outDir dist/server --config vite.config.ssr.js --manifest",
+    "build:prod": "yarn build:asset:prod && yarn build:client && yarn build:server"
   },
   "dependencies": {
     "compression": "^1.8.0",

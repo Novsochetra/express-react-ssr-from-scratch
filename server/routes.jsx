@@ -8,29 +8,26 @@ export const routes = [
   {
     path: RoutePath.ROOT,
     element: <Home />,
-    loader: async () => {
-      return { message: "Hello from SSR!" };
-    },
+    moduleId: "client/home.tsx",
   },
   {
     path: RoutePath.HOME,
     element: <Home />,
-    loader: async () => {
-      return { message: "Hello from SSR!" };
-    },
+    moduleId: "client/home.tsx",
   },
   {
     path: RoutePath.ABOUT,
     element: <About />,
-    loader: async () => {
-      return { message: "Hello from SSR!" };
-    },
+    moduleId: "client/about.tsx",
   },
   {
     path: RoutePath.FRONT_PAGE,
     element: <FrontPage />,
-    loader: async () => {
-      return { message: "Hello from SSR!" };
-    },
+    moduleId: "client/front-page.jsx",
+  },
+  {
+    path: "/home/detail",
+    element: <FrontPage />,
+    moduleId: "client/front-page.jsx",
   },
 ];

@@ -1,17 +1,13 @@
-import React from "react";
 import { hydrateRoot } from "react-dom/client";
-import {
-  BrowserRouter,
-  createBrowserRouter,
-  createMemoryRouter,
-  Router,
-  RouterProvider,
-} from "react-router";
+import { createBrowserRouter, RouterProvider } from "react-router";
 import { routes } from "../server/routes";
+import { startTransition } from "react";
 
 const router = createBrowserRouter(routes);
 
-hydrateRoot(
-  document.getElementById("root"),
-  <RouterProvider router={router} />
+startTransition(() =>
+  hydrateRoot(
+    document.getElementById("root"),
+    <RouterProvider router={router} />
+  )
 );

@@ -26,7 +26,7 @@ export const routes = [
     moduleId: "client/front-page.jsx",
   },
   {
-    path: "/home/detail",
+    path: RoutePath.HOME_DETAIL,
     element: <FrontPage />,
     moduleId: "client/front-page.jsx",
   },

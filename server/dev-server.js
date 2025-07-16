@@ -2,14 +2,33 @@
 import fs from "node:fs";
 import path from "node:path";
 import express from "express";
+import crypto from "node:crypto";
+import helmet from "helmet";
 import compression from "compression";
 import { createServer as createViteServer } from "vite";
 import { RoutePathValues } from "./route-path.js";
 import { isDev, isProd, loadManifestClient } from "./helper.js";
+import { requestIdMiddleware } from "./middlewares/request-id.middleware.js";
+import { httpLogger } from "./middlewares/logger.middleware.js";
+import { nonceMiddleware } from "./middlewares/nonce.middleware.js";
 
 async function startServer() {
   const app = express();
 
+  app.use(requestIdMiddleware());
+  app.use(httpLogger());
+  app.use(nonceMiddleware());
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          scriptSrc: ["'self'", (req, res) => `'nonce-${res.locals.nonce}'`],
+        },
+      },
+    })
+  );
   app.use(compression());
 
   let viteDevServer;

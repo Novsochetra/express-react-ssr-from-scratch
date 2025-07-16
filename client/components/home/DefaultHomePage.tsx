@@ -50,7 +50,12 @@ export const DefaultHomePage = () => {
     <>
       <header className="p-10">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="logo.svg" className="max-h-12" alt="xmenu logo" />
+        <img
+          src="logo.svg"
+          className="max-h-12"
+          alt="xmenu logo"
+          loading="lazy"
+        />
       </header>
 
       <div className="hidden lg:block absolute overflow-clip top-0 right-0">
@@ -59,6 +64,7 @@ export const DefaultHomePage = () => {
           alt="top-right-background"
           src="./top-right-background.svg"
           className="max-h-[672px] -translate-y-32 xl:translate-y-0"
+          loading="lazy"
         />
       </div>
 

@@ -40,7 +40,13 @@ Hi, I’d like to learn more about XMenu. Can you help me get started?
 `;
 
 export const DefaultHomePage = () => {
-  const [state, setState] = useState({});
+  const [state, setState] = useState({
+    windowWidth: 0,
+    itemWidth: 0,
+    iframeWidth: 0,
+    iframeHeight: 0,
+    borderRadius: 0,
+  });
   const locale = "en";
 
   useEffect(() => {
@@ -74,6 +80,7 @@ export const DefaultHomePage = () => {
           alt="top-right-background"
           src="/public/top-right-background.svg"
           className="max-h-[672px] -translate-y-32 xl:translate-y-0"
+          loading="lazy"
         />
       </div>
 
@@ -99,7 +106,7 @@ export const DefaultHomePage = () => {
 
           <div className="ml-10">
             <h2 className="text-3xl lg:text-5xl text-white mb-5 max-w-[300px] lg:max-w-[600px] font-extrabold">
-              Explore experience emenu
+              Explore experience emenu (Update)
             </h2>
 
             <p className="text-base lg:text-xl text-white max-w-[352px] leading-7 lg:max-w-[600px] mb-9">

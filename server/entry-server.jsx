@@ -1,6 +1,7 @@
 // server/entry-server.tsx
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { renderToPipeableStream } from "react-dom/server";
 import {
   createStaticHandler,
@@ -42,7 +43,7 @@ export async function handleRequest(req, res, viteDevServer, clientFilePath) {
   // Replace the script placeholder in the rest
   htmlEnd = htmlEnd.replace(
     "<!-- script -->",
-    `<script async type="module" src="${clientFilePath}"></script>`
+    `<script async type="module" src="${clientFilePath}" nonce="${res.locals.nonce}"></script>`
   );
 
   if (viteDevServer) {
@@ -50,11 +51,25 @@ export async function handleRequest(req, res, viteDevServer, clientFilePath) {
     htmlEnd = await viteDevServer.transformIndexHtml(req.url, htmlEnd);
   }
 
+  const etag = generateETag(htmlStart + htmlEnd);
+
+  if (req.headers["if-none-match"] === etag) {
+    res.status(304).end();
+    return;
+  }
+
   const stream = renderToPipeableStream(
-    <StaticRouterProvider context={context} router={router} />,
+    <StaticRouterProvider
+      context={context}
+      router={router}
+      nonce={`${res.locals.nonce}`}
+    />,
     {
       onShellReady() {
-        res.status(200).setHeader("Content-Type", "text/html");
+        res
+          .status(200)
+          .setHeader("Content-Type", "text/html")
+          .setHeader("ETag", etag);
         res.write(htmlStart);
         stream.pipe(res);
         res.write(htmlEnd);
@@ -99,4 +114,8 @@ function getPreloadLinksForPath(pathname) {
   if (entry.css) entry.css.forEach(addLink);
 
   return links;
+}
+
+function generateETag(content) {
+  return crypto.createHash("sha1").update(content).digest("hex");
 }

@@ -99,6 +99,7 @@ export const SliderStoreSetupItem = ({
             width={imageWidth}
             height={imageHeight}
             alt="welcome"
+            loading="lazy"
           />
         </div>
       </div>

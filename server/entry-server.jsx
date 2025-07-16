@@ -43,6 +43,16 @@ export async function handleRequest(req, res, viteDevServer, clientFilePath) {
   // Replace the script placeholder in the rest
   htmlEnd = htmlEnd.replace(
     "<!-- script -->",
+    `<script async type="module" src="${clientFilePath}"></script>`
+  );
+
+  // INFO: we generate etag before adding nonce so we can making sure that the browser
+  // is able to cache the file with etag, since each time we request the nonce is
+  // awalys uniq
+  const etag = generateETag(htmlStart + htmlEnd);
+
+  htmlEnd = htmlEnd.replace(
+    `<script async type="module" src="${clientFilePath}"></script>`,
     `<script async type="module" src="${clientFilePath}" nonce="${res.locals.nonce}"></script>`
   );
 
@@ -50,8 +60,6 @@ export async function handleRequest(req, res, viteDevServer, clientFilePath) {
     htmlStart = await viteDevServer.transformIndexHtml(req.url, htmlStart);
     htmlEnd = await viteDevServer.transformIndexHtml(req.url, htmlEnd);
   }
-
-  const etag = generateETag(htmlStart + htmlEnd);
 
   if (req.headers["if-none-match"] === etag) {
     res.status(304).end();

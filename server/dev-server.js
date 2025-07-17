@@ -5,7 +5,7 @@ import express from "express";
 import crypto from "node:crypto";
 import compression from "compression";
 import { createServer as createViteServer } from "vite";
-import { RoutePathValues } from "./route-path.js";
+import { RoutePath, RoutePathValues } from "./route-path.js";
 import { isDev, isProd, loadManifestClient } from "./helper.js";
 import { requestIdMiddleware } from "./middlewares/request-id.middleware.js";
 import { httpLogger } from "./middlewares/logger.middleware.js";
@@ -69,7 +69,7 @@ async function startServer() {
           "/server/entry-server.jsx"
         );
         handleRequest = ssrModule.handleRequest;
-        entryClientFile = "./client/entry-client.jsx";
+        entryClientFile = "/client/entry-client.jsx";
         handleRequest(req, res, viteDevServer, entryClientFile);
       } else {
         const manifest = loadManifestClient();

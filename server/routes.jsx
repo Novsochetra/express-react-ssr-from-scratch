@@ -1,8 +1,11 @@
 import { lazy } from "react";
 import { RoutePath } from "./route-path";
 const About = lazy(() => import("../client/about"));
+const RequireAuth = lazy(() => import("../client/components/required-auth"));
 const Home = lazy(() => import("../client/home"));
+const HomeDetail = lazy(() => import("../client/view/home-detail"));
 const FrontPage = lazy(() => import("../client/front-page"));
+const Login = lazy(() => import("../client/view/login"));
 
 export const routes = [
   {
@@ -27,7 +30,16 @@ export const routes = [
   },
   {
     path: RoutePath.HOME_DETAIL,
-    element: <FrontPage />,
+    element: (
+      <RequireAuth>
+        <HomeDetail />
+      </RequireAuth>
+    ),
     moduleId: "client/front-page.jsx",
+  },
+  {
+    path: RoutePath.LOGIN,
+    element: <Login />,
+    moduleId: "client/view/login.tsx",
   },
 ];

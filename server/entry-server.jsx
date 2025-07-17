@@ -10,8 +10,15 @@ import {
 } from "react-router";
 import { routes } from "./routes";
 import { loadManifestServer } from "./helper.js";
+import { AuthProvider } from "../client/components/auth-provider.tsx";
 
-export async function handleRequest(req, res, viteDevServer, clientFilePath) {
+export async function handleRequest(
+  req,
+  res,
+  viteDevServer,
+  clientFilePath,
+  isAuthenticated
+) {
   const handler = createStaticHandler(routes);
 
   const context = await handler.query(
@@ -43,7 +50,10 @@ export async function handleRequest(req, res, viteDevServer, clientFilePath) {
   // Replace the script placeholder in the rest
   htmlEnd = htmlEnd.replace(
     "<!-- script -->",
-    `<script async type="module" src="${clientFilePath}"></script>`
+    `
+    <script async type="module" src="${clientFilePath}"></script>
+    <script>window.__AUTH__ = { isAuthenticated: ${isAuthenticated} }</script>
+    `
   );
 
   // INFO: we generate etag before adding nonce so we can making sure that the browser
@@ -67,11 +77,13 @@ export async function handleRequest(req, res, viteDevServer, clientFilePath) {
   }
 
   const stream = renderToPipeableStream(
-    <StaticRouterProvider
-      context={context}
-      router={router}
-      nonce={`${res.locals.nonce}`}
-    />,
+    <AuthProvider isAuthenticated={isAuthenticated}>
+      <StaticRouterProvider
+        context={context}
+        router={router}
+        nonce={`${res.locals.nonce}`}
+      />
+    </AuthProvider>,
     {
       onShellReady() {
         res

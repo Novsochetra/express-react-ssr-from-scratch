@@ -307,8 +307,8 @@ service all year round."
             <div
               className="w-[257px] relative min-h-10 z-20"
               style={{
-                maskImage: "url(public/mask-custom-build-menu.png)",
-                WebkitMaskImage: "url(public/mask-custom-build-menu.png)",
+                maskImage: "url(./public/mask-custom-build-menu.png)",
+                WebkitMaskImage: "url(./public/mask-custom-build-menu.png)",
                 maskRepeat: "no-repeat",
                 maskPosition: "center",
               }}

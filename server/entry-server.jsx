@@ -3,14 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { renderToPipeableStream } from "react-dom/server";
-import {
-  createStaticHandler,
-  createStaticRouter,
-  StaticRouterProvider,
-} from "react-router";
-import { routes } from "./routes";
 import { loadManifestServer } from "./helper.js";
-import { AuthProvider } from "../client/components/auth-provider.tsx";
+import { getPageComponent, routes } from "../client/routes/custom-route.jsx";
 
 export async function handleRequest(
   req,
@@ -19,19 +13,6 @@ export async function handleRequest(
   clientFilePath,
   isAuthenticated
 ) {
-  const handler = createStaticHandler(routes);
-
-  const context = await handler.query(
-    new Request("http://localhost:3000" + req.originalUrl)
-  );
-  if (context instanceof Response) {
-    res.status(context.status).send("Not found");
-    return;
-  }
-
-  const newReq = new Request("http://localhost:3000" + req.url);
-  const router = createStaticRouter(handler.dataRoutes, context);
-
   // Read your full HTML file
   let html = fs.readFileSync(path.resolve("public/index.html"), "utf-8");
 
@@ -51,8 +32,10 @@ export async function handleRequest(
   htmlEnd = htmlEnd.replace(
     "<!-- script -->",
     `
+    <script>
+      window.__SSR_PATH__ = "${req.originalUrl}";
+    </script>
     <script async type="module" src="${clientFilePath}"></script>
-    <script>window.__AUTH__ = { isAuthenticated: ${isAuthenticated} }</script>
     `
   );
 
@@ -75,44 +58,36 @@ export async function handleRequest(
     res.status(304).end();
     return;
   }
+  const Outlet = getPageComponent(req.originalUrl);
 
-  const stream = renderToPipeableStream(
-    <AuthProvider isAuthenticated={isAuthenticated}>
-      <StaticRouterProvider
-        context={context}
-        router={router}
-        nonce={`${res.locals.nonce}`}
-      />
-    </AuthProvider>,
-    {
-      onShellReady() {
-        res
-          .status(200)
-          .setHeader("Content-Type", "text/html")
-          .setHeader("ETag", etag);
-        res.write(htmlStart);
-        stream.pipe(res);
-        res.write(htmlEnd);
-      },
-      onError(err) {
-        console.error("Stream error:", err);
-        res.status(500).send("Internal server error");
-      },
-    }
-  );
+  const stream = renderToPipeableStream(Outlet, {
+    onShellReady() {
+      res
+        .status(200)
+        .setHeader("Content-Type", "text/html")
+        .setHeader("ETag", etag);
+      res.write(htmlStart);
+      stream.pipe(res);
+      res.write(htmlEnd);
+    },
+    onError(err) {
+      console.error("Stream error:", err);
+      res.status(500).send("Internal server error");
+    },
+  });
 }
 
 // server/entry-server.tsx
 
 function getRouteForPath(pathname) {
-  const manifest = loadManifestServer();
-  return routes.find((r) => r.path === pathname);
+  return routes.get(pathname);
 }
 
 function getPreloadLinksForPath(pathname) {
   const manifest = loadManifestServer();
 
   const route = getRouteForPath(pathname);
+
   if (!route || !route.moduleId) return "";
 
   const entry = manifest[route.moduleId];

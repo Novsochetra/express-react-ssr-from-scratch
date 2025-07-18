@@ -4,10 +4,8 @@ import path from "node:path";
 import express from "express";
 import crypto from "node:crypto";
 
-import { RoutePath, RoutePathValues } from "./route-path.js";
 import { isDev, isProd, loadManifestClient } from "./helper.js";
 import { middlewares } from "./middlewares/index.js";
-import { routeValidator } from "./validator/route-validator.js";
 
 async function startServer() {
   const app = express();
@@ -19,14 +17,10 @@ async function startServer() {
 
   const { handleRequest } = await setUpSSR(app);
 
-  app.use("{*splats}", routeValidator, async (req, res) => {
+  app.use("{*splats}", async (req, res) => {
     try {
       handleRequest(req, res);
     } catch (err) {
-      if (viteDevServer) {
-        viteDevServer.ssrFixStacktrace(err);
-      }
-      console.error("ERROR : ", err);
       res.status(500).end(err instanceof Error ? err.message : String(err));
     }
   });
@@ -45,9 +39,17 @@ async function startServer() {
 
 startServer();
 
+function checkUserAuth(req) {
+  // TODO: Implement your auth logic here
+  // For example:
+  return Boolean(req.cookies?.token);
+}
+
 function setUpStaticPath(app) {
   if (isProd) {
-    app.use("/public", express.static(path.resolve("./dist/client")));
+    app.use("/public", (req, res, next) => {
+      express.static(path.resolve("./dist/client"))(req, res, next);
+    });
     app.use("/public", express.static(path.resolve("./public")));
   }
 
@@ -59,7 +61,7 @@ function setUpStaticPath(app) {
 
 async function setUpSSR(app) {
   if (isDev) {
-    const createViteServer = await import("vite");
+    const createViteServer = (await import("vite")).createServer;
     const viteDevServer = await createViteServer({
       server: { middlewareMode: "ssr" },
       appType: "custom",

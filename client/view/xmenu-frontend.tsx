@@ -1,8 +1,8 @@
-import "./base.out.css";
+import "./xmenu-frontend.out.css";
 import React, { useEffect, useState } from "react";
-import { SliderProvider } from "./components/home/slider/SliderProvider";
-import { Slider } from "./components/home/slider/index";
-import { SetUpStoreDesc } from "./components/home/SetUpStoreDesc";
+import { SliderProvider } from "../components/home/slider/SliderProvider";
+import { Slider } from "../components/home/slider/index";
+import { SetUpStoreDesc } from "../components/home/SetUpStoreDesc";
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -39,7 +39,7 @@ const generalMessage = `
 Hi, I’d like to learn more about XMenu. Can you help me get started?
 `;
 
-export const DefaultHomePage = () => {
+export const XMenuFronPage = () => {
   const [state, setState] = useState({
     windowWidth: 0,
     itemWidth: 0,
@@ -67,14 +67,20 @@ export const DefaultHomePage = () => {
         borderRadius,
       });
     }
-  }, [window]);
+  }, [globalThis?.window]);
 
-  if (!state.windowWidth) {
+  if (typeof window === "undefined" || !state.windowWidth) {
     return <div></div>;
   }
 
   return (
     <>
+      <a href="/home">Home</a>
+      <br />
+      <a href="/login">Login</a>
+      <br />
+      <br />
+
       <div className="hidden lg:block absolute overflow-clip top-0 right-0">
         <img
           alt="top-right-background"
@@ -445,4 +451,4 @@ export const PriceCard = ({ title, desc, href }) => {
   );
 };
 
-export default DefaultHomePage;
+export default XMenuFronPage;

@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "yarn build:asset:dev --mode=concurrent & NODE_ENV=development node ./server/dev-server.js",
     "preview": "yarn build:prod && NODE_ENV=production node ./server/dev-server.js",
-    "build:asset:prod": "NODE_ENV=production node scripts/watch-css.js",
+    "build:asset:prod": "NODE_ENV=production node scripts/watch-css.js --mode=concurrent",
     "build:asset:dev": "NODE_ENV=development node scripts/watch-css.js",
     "build:client": "npx vite build --outDir dist/client --config vite.config.js --manifest ",
     "build:server": "npx vite build --outDir dist/server --config vite.config.ssr.js --manifest",

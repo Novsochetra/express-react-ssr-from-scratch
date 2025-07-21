@@ -23,6 +23,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@sochetra-nov/vite-plugin-js-obfuscator": "^1.0.1",
     "@tailwindcss/cli": "^4.1.11",
     "@vitejs/plugin-react": "^4.6.0",
     "prettier": "^3.6.2",

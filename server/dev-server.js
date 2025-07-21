@@ -6,6 +6,7 @@ import crypto from "node:crypto";
 
 import { isDev, isProd, loadManifestClient } from "./helper.js";
 import { middlewares } from "./middlewares/index.js";
+import { routeValidator } from "./validator/route-validator.js";
 
 async function startServer() {
   const app = express();
@@ -17,7 +18,7 @@ async function startServer() {
 
   const { handleRequest } = await setUpSSR(app);
 
-  app.use("{*splats}", async (req, res) => {
+  app.use("{*splats}", routeValidator, async (req, res) => {
     try {
       handleRequest(req, res);
     } catch (err) {

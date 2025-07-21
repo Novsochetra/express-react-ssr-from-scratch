@@ -1,7 +1,13 @@
-import { hydrateRoot } from "react-dom/client";
 import { startTransition } from "react";
-import { getPageComponent } from "./routes/custom-route";
+import { createBrowserRouter, RouterProvider } from "react-router";
+import { hydrateRoot } from "react-dom/client";
+import { routes } from "./routes/react-router";
 
-const Page = getPageComponent(window.__SSR_PATH__); // Injected from server
+const router = createBrowserRouter(routes);
 
-startTransition(() => hydrateRoot(document.getElementById("root"), Page));
+startTransition(() =>
+  hydrateRoot(
+    document.getElementById("root"),
+    <RouterProvider router={router} />
+  )
+);

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { SliderProvider } from "../components/home/slider/SliderProvider";
 import { Slider } from "../components/home/slider/index";
 import { SetUpStoreDesc } from "../components/home/SetUpStoreDesc";
+import { Link } from "react-router";
 
 function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
@@ -75,9 +76,9 @@ export const XMenuFronPage = () => {
 
   return (
     <>
-      <a href="/home">Home</a>
+      <Link to="/home">Home</Link>
       <br />
-      <a href="/login">Login</a>
+      <Link to="/login">Login</Link>
       <br />
       <br />
 
@@ -419,9 +420,9 @@ service all year round."
           </div>
           <p className="text-white text-base lg:text-xl">
             © 2025{" "}
-            <a href="/" className="italic underline font-bold">
+            <Link to="/" className="italic underline font-bold">
               xmenu.store
-            </a>
+            </Link>
             . All rights reserved.
           </p>
         </div>

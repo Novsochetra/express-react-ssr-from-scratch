@@ -5,6 +5,12 @@ import crypto from "node:crypto";
 import { renderToPipeableStream } from "react-dom/server";
 import { loadManifestServer } from "./helper.js";
 import { getPageComponent, routes } from "../client/routes/custom-route.jsx";
+import { routes as reactRouterRoutes } from "../client/routes/react-router.jsx";
+import {
+  createStaticHandler,
+  createStaticRouter,
+  StaticRouterProvider,
+} from "react-router";
 
 export async function handleRequest(
   req,
@@ -15,6 +21,18 @@ export async function handleRequest(
 ) {
   // Read your full HTML file
   let html = fs.readFileSync(path.resolve("public/index.html"), "utf-8");
+  const handler = createStaticHandler(reactRouterRoutes);
+
+  const context = await handler.query(
+    new Request("http://localhost:3000" + req.originalUrl)
+  );
+
+  if (context instanceof Response) {
+    res.status(context.status).send("Not found");
+    return;
+  }
+
+  const router = createStaticRouter(handler.dataRoutes, context);
 
   // Split at the ssr outlet inside the root div
   let [htmlStart, htmlEnd] = html.split("<!--ssr-outlet-->");
@@ -32,9 +50,6 @@ export async function handleRequest(
   htmlEnd = htmlEnd.replace(
     "<!-- script -->",
     `
-    <script>
-      window.__SSR_PATH__ = "${req.originalUrl}";
-    </script>
     <script async type="module" src="${clientFilePath}"></script>
     `
   );
@@ -58,36 +73,41 @@ export async function handleRequest(
     res.status(304).end();
     return;
   }
-  const Outlet = getPageComponent(req.originalUrl);
 
-  const stream = renderToPipeableStream(Outlet, {
-    onShellReady() {
-      res
-        .status(200)
-        .setHeader("Content-Type", "text/html")
-        .setHeader("ETag", etag);
-      res.write(htmlStart);
-      stream.pipe(res);
-      res.write(htmlEnd);
-    },
-    onError(err) {
-      console.error("Stream error:", err);
-      res.status(500).send("Internal server error");
-    },
-  });
+  const stream = renderToPipeableStream(
+    <StaticRouterProvider
+      context={context}
+      router={router}
+      nonce={`${res.locals.nonce}`}
+    />,
+    {
+      onShellReady() {
+        res
+          .status(200)
+          .setHeader("Content-Type", "text/html")
+          .setHeader("ETag", etag);
+
+        res.write(htmlStart);
+        stream.pipe(res);
+        res.write(htmlEnd);
+      },
+      onError(err) {
+        console.error("Stream error:", err);
+        res.status(500).send("Internal server error");
+      },
+    }
+  );
 }
 
-// server/entry-server.tsx
-
 function getRouteForPath(pathname) {
-  return routes.get(pathname);
+  // return routes.get(pathname);
+  return reactRouterRoutes.find((r) => r.path === pathname);
 }
 
 function getPreloadLinksForPath(pathname) {
   const manifest = loadManifestServer();
 
   const route = getRouteForPath(pathname);
-
   if (!route || !route.moduleId) return "";
 
   const entry = manifest[route.moduleId];

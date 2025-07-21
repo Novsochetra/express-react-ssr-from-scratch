@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+import "./home.out.css";
 import { useState } from "react";
 
 export default function Home() {
@@ -13,11 +15,13 @@ export default function Home() {
         Home (SSR)
       </h1>
 
-      <a href="/dashboard">Dashboard</a>
+      <Link to="/dashboard" prefetch="render">
+        Dashboard
+      </Link>
       <br />
-      <a href="/login">login</a>
+      <Link to="/login">login</Link>
       <br />
-      <a href="/front-page">Front page</a>
+      <Link to="/front-page">Front page</Link>
 
       <br />
 

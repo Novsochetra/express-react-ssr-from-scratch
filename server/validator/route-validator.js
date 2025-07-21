@@ -1,4 +1,4 @@
-import { RoutePathValues } from "../route-path.js";
+import { RoutePathValues } from "../../client/routes/route-path.js";
 
 export function routeValidator(req, res, next) {
   // Check if it's a valid app route

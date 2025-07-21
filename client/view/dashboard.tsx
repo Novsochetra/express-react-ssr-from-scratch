@@ -1,14 +1,16 @@
+import { Link } from "react-router";
+
 export default function Dashboard() {
   return (
     <div>
       <h1 className="text-blue-500">Dashboard</h1>
       <br />
 
-      <a href="/home">Home</a>
+      <Link to="/home">Home</Link>
       <br />
-      <a href="/login">Login</a>
+      <Link to="/login">Login</Link>
       <br />
-      <a href="/front-page">Front page</a>
+      <Link to="/front-page">Front page</Link>
     </div>
   );
 }

@@ -1,12 +1,14 @@
+import { Link } from "react-router";
+
 export const Login = () => {
   return (
     <div>
       <h1>Login</h1>
-      <a href="/home">Home</a>
+      <Link to="/home">Home</Link>
       <br />
-      <a href="/dashboard">Dashboard</a>
+      <Link to="/dashboard">Dashboard</Link>
       <br />
-      <a href="/front-page">Front page</a>
+      <Link to="/front-page">Front page</Link>
     </div>
   );
 };

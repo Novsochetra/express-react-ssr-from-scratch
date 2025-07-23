@@ -2,14 +2,27 @@
 import fs from "node:fs";
 import path from "node:path";
 import express from "express";
-import crypto from "node:crypto";
+import https from "node:https";
 
 import { isDev, isProd, loadManifestClient } from "./helper.js";
 import { middlewares } from "./middlewares/index.js";
 import { routeValidator } from "./validator/route-validator.js";
+import { getLocalIPAddress } from "./lib/utils/network.js";
+import { getDirname } from "./lib/utils/fs.js";
+import { router } from "./routes/index.js";
+import { loadAppConfig } from "./bootstrap/config.js";
+
+const appConfigs = loadAppConfig();
+const CACHE_DIR = path.resolve(getDirname(), appConfigs.images.cacheFolder);
+
+if (!fs.existsSync(CACHE_DIR)) {
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
+}
 
 async function startServer() {
   const app = express();
+
+  app.disable("x-powered-by");
 
   app.use(middlewares);
 
@@ -17,6 +30,8 @@ async function startServer() {
   setUpStaticPath(app);
 
   const { handleRequest } = await setUpSSR(app);
+
+  app.use(router);
 
   app.use("{*splats}", routeValidator, async (req, res) => {
     try {
@@ -26,12 +41,22 @@ async function startServer() {
     }
   });
 
-  app.listen(3000, () => {
+  const server = https.createServer(
+    {
+      key: fs.readFileSync("ssl/key.pem"),
+      cert: fs.readFileSync("ssl/cert.pem"),
+    },
+    app
+  );
+
+  server.listen(appConfigs?.server?.port || 3001, () => {
     const pattern = `
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🚀  Dev server running at:
 
-     http://localhost:3000
+    https://localhost:${appConfigs?.server?.port || 3001}
+    https://${getLocalIPAddress()}:${appConfigs?.server?.port || 3001}
+      
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
     `;
     console.log(pattern);
@@ -39,12 +64,6 @@ async function startServer() {
 }
 
 startServer();
-
-function checkUserAuth(req) {
-  // TODO: Implement your auth logic here
-  // For example:
-  return Boolean(req.cookies?.token);
-}
 
 function setUpStaticPath(app) {
   if (isProd) {

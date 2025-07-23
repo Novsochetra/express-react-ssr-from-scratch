@@ -5,7 +5,6 @@ import { isDev } from "../server/helper.js";
 
 const __dirname = path.resolve();
 const CLIENT_DIR = path.join(__dirname, "client");
-const CLIENT_OUT_DIR = path.join(__dirname, "client");
 const args = process.argv.slice(2);
 const modeArg = args.find((arg) => arg.startsWith("--mode="));
 const mode = modeArg ? modeArg.split("=")[1] : "queue"; // default to 'queue'
@@ -61,7 +60,7 @@ async function watchFile(file, index, totalFiles) {
 
   console.log(`${prefix} ${inputPath?.replace(__dirname, "")}`);
   if (mode === "concurrent") {
-    await buildCssConcurrent(inputPath, outputPath);
+    buildCssConcurrent(inputPath, outputPath);
   } else if (mode === "queue") {
     await buildCssQueue(inputPath, outputPath);
   }

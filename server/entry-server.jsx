@@ -4,7 +4,6 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { renderToPipeableStream } from "react-dom/server";
 import { loadManifestServer } from "./helper.js";
-import { getPageComponent, routes } from "../client/routes/custom-route.jsx";
 import { routes as reactRouterRoutes } from "../client/routes/react-router.jsx";
 import {
   createStaticHandler,
